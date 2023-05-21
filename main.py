@@ -1,10 +1,6 @@
 import tkinter as tk
 from tkinter import ttk
-import mysql.connector as mysql
 
-
-db = mysql.connect(host='localhost', user='root', password='', database='ntic_stock')
-c = db.cursor()
 
 def add_item():
     # Functionality to add an item
@@ -53,6 +49,18 @@ for x in col:
     listbox.heading(x, text=x)
 listbox.grid(row=1, column=0, columnspan=2)
 listbox.place(x=9, y=180)
+
+
+categories = ["Roteur", "Unite centrale", "switch"]
+category_var = tk.StringVar()
+
+category_listbox = tk.Listbox(page, listvariable=category_var)
+category_listbox.grid(row=2, column=3)
+category_listbox.config(height=3)
+
+for category in categories:
+    category_listbox.insert(tk.END, category)
+
 
 tk.Button(page, text="Ajouter", command='', height=2, width=10).place(x=0, y=450)
 tk.Button(page, text="Editer", command='', height=2, width=10).place(x=120, y=450)
