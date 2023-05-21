@@ -1,10 +1,26 @@
 import tkinter as tk
 from tkinter import ttk
 
+import mysql.connector
 
-def add_item():
-    # Functionality to add an item
-    pass
+ 
+db=mysql.connector.connect(host="localhost",user="root",password="",database="ntic_stock")
+mycursor=db.cursor()
+ 
+ 
+
+
+def ajoute():
+   idp = int(e1.get())
+   catego = e2.get()
+   stock = e3.get()
+   prix = e4.get()
+
+   sql = "INSERT into product (idproduct,stock,prix) VALUES ($s,$s,$s)"
+   value = ("idp","stock","prix")
+   mycursor.execute(sql, value)
+   db.commit()
+
 
 def edit_item():
     # Functionality to edit an item
@@ -62,7 +78,7 @@ for category in categories:
     category_listbox.insert(tk.END, category)
 
 
-tk.Button(page, text="Ajouter", command='', height=2, width=10).place(x=0, y=450)
+tk.Button(page, text="Ajouter", command=ajoute, height=2, width=10).place(x=0, y=450)
 tk.Button(page, text="Editer", command='', height=2, width=10).place(x=120, y=450)
 tk.Button(page, text="Supprimer", command='', height=2, width=10).place(x=240, y=450)
 tk.Button(page, text="Afficher", command='', height=2, width=10).place(x=350, y=450)
