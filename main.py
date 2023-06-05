@@ -1,86 +1,121 @@
-import tkinter as tk
-from tkinter import ttk
-
 import mysql.connector
+from tkinter import *
+from tkinter import messagebox, ttk
 
- 
-db=mysql.connector.connect(host="localhost",user="root",password="",database="ntic_stock")
-mycursor=db.cursor()
- 
- 
+db = mysql.connector.connect(
+    host="localhost",
+    user="root",
+    password="",
+    database="tkinter"
+)
 
+def add_student():
+    name = name_entry.get()
+    age = age_entry.get()
+    grade = grade_entry.get()
 
-def ajoute():
-   idp = int(e1.get())
-   catego = e2.get()
-   stock = e3.get()
-   prix = e4.get()
+    cursor = db.cursor()
+    query = "INSERT INTO student (name, age, grade) VALUES (%s, %s, %s)"
+    values = (name, age, grade)
+    cursor.execute(query, values)
+    db.commit()
 
-   sql = "INSERT into product (idproduct,stock,prix) VALUES ($s,$s,$s)"
-   value = ("idp","stock","prix")
-   mycursor.execute(sql, value)
-   db.commit()
+    messagebox.showinfo("Success", "Student added successfully")
+    clear_entries()
+    fetch_students()
 
+def fetch_students():
+    cursor = db.cursor()
+    query = "SELECT * FROM student"
+    cursor.execute(query)
+    records = cursor.fetchall()
 
-def edit_item():
-    # Functionality to edit an item
-    pass
+    for row in student_table.get_children():
+        student_table.delete(row)
 
-def delete_item():
-    # Functionality to delete an item
-    pass
+    for row in records:
+        student_table.insert("", END, values=row)
 
-def show_items():
-    # Functionality to display items
-    pass
+def update_student():
+    selected_item = student_table.selection()
+    if not selected_item:
+        messagebox.showerror("Error", "No student selected")
+        return
 
-page = tk.Tk()
-page.geometry("800x800")
+    name = name_entry.get()
+    age = age_entry.get()
+    grade = grade_entry.get()
+    selected_id = student_table.item(selected_item)['values'][0]
 
-titre = tk.Label(page, text="Gestion stock by Yassine benmansour", font=('Time New Roman', 30, 'bold'))
-titre.grid(row=0, column=3)
+    cursor = db.cursor()
+    query = "UPDATE student SET name=%s, age=%s, grade=%s WHERE id=%s"
+    values = (name, age, grade, selected_id)
+    cursor.execute(query, values)
+    db.commit()
 
-l1 = tk.Label(page, text="Produit ID")
-l2 = tk.Label(page, text="Categorie")
-l3 = tk.Label(page, text="Stock")
-l4 = tk.Label(page, text="Prix")
+    messagebox.showinfo("Success", "Student updated successfully")
+    clear_entries()
+    fetch_students()
 
-l1.grid(row=1, column=2)
-l2.grid(row=2, column=2)
-l3.grid(row=3, column=2)
-l4.grid(row=4, column=2)
+def delete_student():
+    selected_item = student_table.selection()
+    if not selected_item:
+        messagebox.showerror("Error", "No student selected")
+        return
 
-e1 = tk.Entry(page)
-e1.grid(row=1, column=3)
-e2 = tk.Entry(page)
-e2.grid(row=2, column=3)
-e3 = tk.Entry(page)
-e3.grid(row=3, column=3)
-e4 = tk.Entry(page)
-e4.grid(row=4, column=3)
+    confirmation = messagebox.askyesno("Confirmation", "Are you sure you want to delete this student?")
+    if confirmation:
+        selected_id = student_table.item(selected_item)['values'][0]
 
-col = ("Produit ID", "Categorie", "Stock", "Prix")
-listbox = ttk.Treeview(page, columns=col, show='headings')
-for x in col:
-    listbox.heading(x, text=x)
-listbox.grid(row=1, column=0, columnspan=2)
-listbox.place(x=9, y=180)
+        cursor = db.cursor()
+        query = "DELETE FROM student WHERE id=%s"
+        values = (selected_id,)
+        cursor.execute(query, values)
+        db.commit()
 
+        messagebox.showinfo("Success", "Student deleted successfully")
+        fetch_students()
 
-categories = ["Roteur", "Unite centrale", "switch"]
-category_var = tk.StringVar()
+def clear_entries():
+    name_entry.delete(0, END)
+    age_entry.delete(0, END)
+    grade_entry.delete(0, END)
 
-category_listbox = tk.Listbox(page, listvariable=category_var)
-category_listbox.grid(row=2, column=3)
-category_listbox.config(height=3)
+root = Tk()
+root.title("CRUD Application Ntic")
 
-for category in categories:
-    category_listbox.insert(tk.END, category)
+name_label = Label(root, text="Name:")
+name_label.grid(row=0, column=0)
+name_entry = Entry(root)
+name_entry.grid(row=0, column=1)
 
+age_label = Label(root, text="Age:")
+age_label.grid(row=1, column=0)
+age_entry = Entry(root)
+age_entry.grid(row=1, column=1)
 
-tk.Button(page, text="Ajouter", command=ajoute, height=2, width=10).place(x=0, y=450)
-tk.Button(page, text="Editer", command='', height=2, width=10).place(x=120, y=450)
-tk.Button(page, text="Supprimer", command='', height=2, width=10).place(x=240, y=450)
-tk.Button(page, text="Afficher", command='', height=2, width=10).place(x=350, y=450)
+grade_label = Label(root, text="Grade:")
+grade_label.grid(row=2, column=0)
+grade_entry = Entry(root)
+grade_entry.grid(row=2, column=1)
 
-page.mainloop()
+add_button = Button(root, text="Add", command=add_student)
+add_button.grid(row=3, column=0)
+
+update_button = Button(root, text="Update", command=update_student)
+update_button.grid(row=3, column=1)
+
+student_table = ttk.Treeview(root, columns=("ID", "Name", "Age", "Grade"), show="headings")
+student_table.grid(row=4, column=0, columnspan=2)
+
+student_table.heading("ID", text="ID")
+student_table.heading("Name", text="Name")
+student_table.heading("Age", text="Age")
+student_table.heading("Grade", text="Grade")
+
+delete_button = Button(root, text="Delete", command=delete_student)
+delete_button.grid(row=5, column=0, columnspan=2)
+
+fetch_students()
+
+root.mainloop()
